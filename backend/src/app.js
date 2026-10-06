@@ -1,12 +1,15 @@
 const express = require("express");
 
 const app = express();
-const PORT = 3000;
+
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("🚀 Bienvenido a TaskFlow");
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
+app.get("/api/health", (req, res) => {
+  res.json({ success: true, data: { status: "ok" } });
 });
+
+module.exports = app;

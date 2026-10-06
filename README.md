@@ -1,18 +1,82 @@
-# TaskFlow
+# FamilyTask (TaskFlow)
 
-Aplicación web de gestión de tareas desarrollada con React, Node.js, Express y PostgreSQL.
+Aplicación web mobile-first para la gestión de tareas del hogar. Un líder (o líderes) de familia crea y asigna tareas a los integrantes, hace seguimiento de su ejecución, se comunica dentro de cada tarea, recibe notificaciones y consulta historial y estadísticas básicas.
 
-Gestor de tareas desarrollado como proyecto personal.
+Flujo core: **PLAN → ASSIGN → EXECUTE → COMMUNICATE → SUPERVISE**
 
-## Tecnologías
+La especificación completa (reglas de negocio, modelo de datos, API, fases de desarrollo, criterios de aceptación) vive en [`docs/spec.md`](./docs/spec.md) y es la fuente de verdad del alcance del MVP.
 
-- React
-- Node.js
-- Express
-- PostgreSQL
-- Prisma
-- TailwindCSS
+## Stack
+
+**Backend**
+- Node.js + Express
+- PostgreSQL + Prisma
+- JWT + bcrypt
+
+**Frontend**
+- React + Vite (JavaScript, sin TypeScript)
+- React Router
+- Axios
+- React Hook Form + Zod
+
+## Estructura del repositorio
+
+```
+taskflow/
+  client/   # Frontend React + Vite
+  backend/  # API Express
+  docs/     # Especificación y documentación del proyecto
+```
+
+### Backend (`backend/src/`)
+```
+config/        # configuración y variables de entorno
+controllers/   # controladores HTTP (delgados)
+middleware/    # auth, autorización, manejo de errores
+routes/        # definición de rutas /api
+services/      # lógica de negocio
+validators/    # validación de entrada
+utils/         # utilidades
+prisma/        # schema y migraciones
+app.js         # configuración de Express (sin listen)
+server.js      # punto de entrada, levanta el servidor
+```
+
+### Frontend (`client/src/`)
+```
+app/
+components/
+features/
+  auth/
+  family/
+  tasks/
+  notifications/
+  statistics/
+pages/
+layouts/
+hooks/
+services/
+utils/
+styles/
+```
+
+## Desarrollo local
+
+### Backend
+```bash
+cd backend
+cp .env.example .env   # completar DATABASE_URL y JWT_SECRET
+npm install
+npm run dev
+```
+
+### Frontend
+```bash
+cd client
+npm install
+npm run dev
+```
 
 ## Estado
 
-🚧 En desarrollo
+🚧 En desarrollo — fase inicial de estructura del proyecto (Phase 0 de la especificación).
