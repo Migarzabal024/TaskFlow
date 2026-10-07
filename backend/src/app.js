@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
 const familyRoutes = require("./routes/familyRoutes");
 const invitationRoutes = require("./routes/invitationRoutes");
@@ -6,9 +7,11 @@ const taskRoutes = require("./routes/taskRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const statisticsRoutes = require("./routes/statisticsRoutes");
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
+const { corsOrigin } = require("./config/env");
 
 const app = express();
 
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 
 app.get("/", (req, res) => {

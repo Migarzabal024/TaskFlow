@@ -110,3 +110,25 @@ Drizzle no depende de un motor binario externo: usa el driver `pg` (node-postgre
 - Antes de contar se corre el mismo barrido de expiración perezosa (`expireOverdueFamilyTasks`) que usan `listTasks`/`getTaskById`, para que una tarea vencida no leída todavía aparezca como EXPIRED y no como PENDING/IN_PROGRESS.
 
 **Motivo:** son las interpretaciones más simples y consistentes con el resto de la implementación (mismo criterio de visibilidad por rol ya usado en toda la sección de tareas) y con el requisito explícito de la spec de poder ver un conteo de "cancelled" (sección 26: "basic status counts are correct"), que de otro modo sería imposible de cumplir dado cómo está modelada la cancelación.
+
+## 12. CORS
+
+**Spec dice:** nada explícito sobre CORS.
+
+**Qué se implementó:** `backend/src/app.js` usa el middleware `cors`, habilitado solo para el/los origen(es) listados en `CORS_ORIGIN` (`backend/.env`, por defecto `http://localhost:5173`, el puerto de desarrollo de Vite).
+
+**Motivo:** el frontend (Vite, puerto 5173) y el backend (Express, puerto 3000) corren en orígenes distintos en desarrollo; sin CORS el navegador bloquea todas las llamadas de Axios. Se restringe a un allowlist en vez de `origin: "*"` para no exponer la API a cualquier origen una vez deployada.
+
+## 13. Frontend: alcance del shell de React (Phase 9)
+
+**Spec dice (secciones 15-17):** estructura de carpetas sugerida, lista de rutas públicas/autenticadas, y qué debe mostrar cada pantalla principal, sin detalle de implementación.
+
+**Qué se implementó:**
+- Estado de sesión y familia centralizado en `features/auth/AuthContext.jsx` (`useAuth`): guarda el JWT en `localStorage`, carga `user` y `family` (vía `GET /auth/me` y `GET /families/me`) al iniciar, y expone `isLeader` para UI condicional por rol (la autorización real sigue siendo la del backend).
+- Guards de ruta (`app/RouteGuards.jsx`): `RequireGuest` (login/register), `RequireOnboarding` (autenticado sin familia), `RequireFamily` (autenticado y con familia, para todo `/app/*`) y `RequireLeader` (oculta pantallas de LEADER a un MEMBER por UX; el backend rechaza la acción igual si se la fuerza).
+- Sin ruta `/onboarding` genérica: siguiendo el mismo criterio que el backend (no inventar rutas fuera de la spec), `/onboarding/create-family` y `/onboarding/invitation` se enlazan entre sí en vez de armar una pantalla selectora intermedia no listada.
+- El layout autenticado (`layouts/AppLayout.jsx`) usa una barra de navegación inferior en mobile que se convierte en una barra lateral a partir de 768px (mobile-first, spec sección 18), con 6 destinos: dashboard, tareas, familia, notificaciones, estadísticas y perfil.
+- El dashboard (`pages/DashboardPage.jsx`) muestra las mismas tareas (`GET /api/tasks`, ya filtradas por rol en el backend) agrupadas en el cliente por "vencen hoy" y "necesitan atención" (CANNOT_COMPLETE/EXPIRED); el LEADER ve además los contadores pendiente/en curso/completada y el botón de alta rápida.
+- `pages/TaskDetailPage.jsx` resuelve en una sola pantalla todas las acciones de una tarea (o subtarea) según quién la mira: iniciar/completar (asignado o LEADER), reportar que no se puede completar (solo asignado), reasignar y cancelar (solo LEADER) — reutilizando los mismos endpoints genéricos que ya usa el backend para subtareas (ver decisión 8).
+
+**Motivo:** son las interpretaciones más simples y consistentes con el resto del proyecto (mismo patrón de "no inventar superficie fuera de la spec", backend como autoridad final de permisos).

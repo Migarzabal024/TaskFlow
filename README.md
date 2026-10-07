@@ -76,9 +76,12 @@ npm run dev
 ### Frontend
 ```bash
 cd client
+cp .env.example .env   # VITE_API_URL (por defecto http://localhost:3000/api)
 npm install
 npm run dev
 ```
+
+El backend necesita permitir el origen del frontend por CORS: `CORS_ORIGIN` en `backend/.env` (por defecto `http://localhost:5173`, el puerto de Vite).
 
 ## Desviaciones registradas respecto a la especificación
 
@@ -86,4 +89,4 @@ Ver [`docs/decisiones.md`](./docs/decisiones.md).
 
 ## Estado
 
-🚧 En desarrollo — Phase 8 completa (estadísticas). Backend funcional de punta a punta.
+🚧 En desarrollo — Phase 9 completa (shell de React: auth, onboarding, dashboards, tareas, familia, notificaciones, estadísticas, perfil). Backend y frontend funcionales de punta a punta.
