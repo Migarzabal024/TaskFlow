@@ -33,3 +33,21 @@ Drizzle no depende de un motor binario externo: usa el driver `pg` (node-postgre
 **Qué se usó:** `serial` (entero autoincremental) de PostgreSQL para todas las primary keys.
 
 **Motivo:** simplicidad para el MVP; evita depender de la extensión `pgcrypto`/`uuid-ossp` para generar UUIDs en la base. No afecta ninguna regla de negocio de la spec.
+
+## 4. Familia: un solo LEADER por familia en el MVP
+
+**Spec dice:** define roles LEADER/MEMBER y permisos de cada uno, pero no dice explícitamente si una familia puede tener más de un LEADER.
+
+**Qué se implementó:** el creador de la familia (`POST /api/families`) es el único LEADER. Todo usuario que se une vía invitación se agrega siempre con rol MEMBER. `DELETE /api/families/members/:memberId` rechaza eliminar un miembro con rol LEADER, y un LEADER no puede eliminarse a sí mismo (no hay flujo de "transferir liderazgo" ni "abandonar familia" en el MVP).
+
+**Motivo:** es la interpretación más simple y segura compatible con la spec (sección 26: "prefer the smallest implementation compatible with this document"). Si se necesita soportar múltiples líderes o transferencia de liderazgo, es una extensión aislada a `familyService`.
+
+## 5. `GET /api/invitations`: comportamiento dual segun el usuario
+
+**Spec dice:** solo lista el endpoint, sin aclarar si lista invitaciones enviadas (vista del líder) o recibidas (vista del invitado durante el onboarding en `/onboarding/invitation`).
+
+**Qué se implementó:**
+- Si el usuario autenticado ya pertenece a una familia: devuelve las invitaciones **enviadas** por esa familia (requiere rol LEADER para crear, cualquier miembro puede listar).
+- Si el usuario no pertenece a ninguna familia: devuelve las invitaciones **recibidas** (pendientes, no expiradas) a su email — esto es lo que necesita la pantalla de onboarding para mostrarle sus invitaciones.
+
+**Motivo:** cubre ambos casos de uso reales de la spec (pantalla de líder gestionando invitaciones, pantalla de onboarding del invitado) con un único endpoint, sin inventar una ruta nueva no listada en la spec.

@@ -86,4 +86,4 @@ Ver [`docs/decisiones.md`](./docs/decisiones.md).
 
 ## Estado
 
-🚧 En desarrollo — Phase 2 completa (autenticación: registro, login, logout, me, JWT, middleware).
+🚧 En desarrollo — Phase 3 completa (familia, membresía, invitaciones).
