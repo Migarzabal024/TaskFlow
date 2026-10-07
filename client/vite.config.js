@@ -14,8 +14,8 @@ export default defineConfig({
         short_name: 'FamilyTask',
         lang: 'es',
         description: 'Organizá, asigná y seguí las tareas del hogar con toda tu familia.',
-        theme_color: '#3461eb',
-        background_color: '#f4f6f8',
+        theme_color: '#0c0e1a',
+        background_color: '#0c0e1a',
         display: 'standalone',
         start_url: '/',
         icons: [
