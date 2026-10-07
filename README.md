@@ -86,4 +86,4 @@ Ver [`docs/decisiones.md`](./docs/decisiones.md).
 
 ## Estado
 
-🚧 En desarrollo — Phase 4 completa (tareas simples, asignación, transiciones de estado).
+🚧 En desarrollo — Phase 5 completa (tareas compuestas / subtareas, status derivado).

@@ -15,4 +15,14 @@ router.put("/:id", requireLeader, asyncHandler(taskController.updateTask));
 router.patch("/:id/status", asyncHandler(taskController.updateStatus));
 router.patch("/:id/assign", requireLeader, asyncHandler(taskController.assignTask));
 
+router.post("/:id/subtasks", requireLeader, asyncHandler(taskController.createSubtask));
+router.get("/:id/subtasks", asyncHandler(taskController.listSubtasks));
+router.put("/:taskId/subtasks/:subtaskId", requireLeader, asyncHandler(taskController.updateSubtask));
+router.patch("/:taskId/subtasks/:subtaskId/status", asyncHandler(taskController.updateSubtaskStatus));
+router.patch(
+  "/:taskId/subtasks/:subtaskId/assign",
+  requireLeader,
+  asyncHandler(taskController.assignSubtask)
+);
+
 module.exports = router;

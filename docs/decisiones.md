@@ -51,3 +51,13 @@ Drizzle no depende de un motor binario externo: usa el driver `pg` (node-postgre
 - Si el usuario no pertenece a ninguna familia: devuelve las invitaciones **recibidas** (pendientes, no expiradas) a su email — esto es lo que necesita la pantalla de onboarding para mostrarle sus invitaciones.
 
 **Motivo:** cubre ambos casos de uso reales de la spec (pantalla de líder gestionando invitaciones, pantalla de onboarding del invitado) con un único endpoint, sin inventar una ruta nueva no listada en la spec.
+
+## 6. Subtareas: heredan la dueDate del padre y bloquean el status manual del padre por completo
+
+**Spec dice:** cada subtarea tiene "title; assignee; optional description/dueTime/priority as appropriate" (sin `dueDate` propio). También dice que el status del padre "se computa" de las subtareas y que "a parent with pending subtasks cannot be manually marked COMPLETED".
+
+**Qué se implementó:**
+- Las subtareas no reciben `dueDate` propio en el payload: heredan automáticamente el `dueDate` de la tarea padre (la columna es NOT NULL y la spec no la lista como campo de la subtarea).
+- `PATCH /api/tasks/:id/status` rechaza **cualquier** cambio manual de estado (no solo hacia COMPLETED) cuando la tarea tiene subtareas — el estado del padre solo se recalcula automáticamente al cambiar el estado de una subtarea. Esto es una lectura más estricta que "no se puede marcar COMPLETED manualmente", pero consistente con "Do not store a manually editable parent progress percentage" y evita un estado inconsistente (ej. marcar IN_PROGRESS manualmente un padre cuyas subtareas están todas PENDING).
+
+**Motivo:** son las interpretaciones más simples y seguras compatibles con la spec (sección 26).
