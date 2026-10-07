@@ -256,6 +256,7 @@ styles/         # global.css (tokens de diseño y estilos compartidos)
 - [`docs/spec.md`](./docs/spec.md) — especificación funcional completa (fuente de verdad del alcance).
 - [`docs/decisiones.md`](./docs/decisiones.md) — las 14 desviaciones/decisiones de diseño respecto a la spec, con su justificación.
 - [`docs/acceptance-checklist.md`](./docs/acceptance-checklist.md) — checklist de aceptación del MVP, verificado punto por punto.
+- [`docs/roadmap-futuro.md`](./docs/roadmap-futuro.md) — ideas propuestas para futuras mejoras (fuera del alcance del MVP, pendientes de priorizar).
 
 ## Estado
 
