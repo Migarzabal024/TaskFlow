@@ -1,4 +1,6 @@
-require("dotenv").config();
+// En test cargamos .env.test (base de datos y secretos separados de
+// desarrollo) en vez de .env; en cualquier otro entorno, el .env de siempre.
+require("dotenv").config({ path: process.env.NODE_ENV === "test" ? ".env.test" : ".env" });
 
 module.exports = {
   port: process.env.PORT || 3000,
