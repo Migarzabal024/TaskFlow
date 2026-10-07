@@ -86,4 +86,4 @@ Ver [`docs/decisiones.md`](./docs/decisiones.md).
 
 ## Estado
 
-🚧 En desarrollo — Phase 1 completa (PostgreSQL + ORM + schema + migraciones + seed).
+🚧 En desarrollo — Phase 2 completa (autenticación: registro, login, logout, me, JWT, middleware).
