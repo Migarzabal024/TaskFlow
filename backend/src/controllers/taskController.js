@@ -13,6 +13,9 @@ const {
   subtaskStatusTransitionSchema,
 } = require("../validators/subtaskValidators");
 const { cannotCompleteSchema } = require("../validators/cannotCompleteValidators");
+const { sendMessageSchema } = require("../validators/messageValidators");
+const messageService = require("../services/messageService");
+const historyService = require("../services/historyService");
 const { sendSuccess } = require("../utils/apiResponse");
 
 async function createTask(req, res) {
@@ -108,6 +111,22 @@ async function updateSubtaskStatus(req, res) {
   return sendSuccess(res, { data: { subtask } });
 }
 
+async function listMessages(req, res) {
+  const messages = await messageService.listMessages(req.user, req.familyMembership, req.params.taskId);
+  return sendSuccess(res, { data: { messages } });
+}
+
+async function sendMessage(req, res) {
+  const { content } = sendMessageSchema.parse(req.body);
+  const message = await messageService.sendMessage(req.user, req.familyMembership, req.params.taskId, content);
+  return sendSuccess(res, { status: 201, data: { message } });
+}
+
+async function getHistory(req, res) {
+  const history = await historyService.getTaskHistory(req.user, req.familyMembership, req.params.taskId);
+  return sendSuccess(res, { data: { history } });
+}
+
 module.exports = {
   createTask,
   listTasks,
@@ -122,4 +141,7 @@ module.exports = {
   updateSubtask,
   assignSubtask,
   updateSubtaskStatus,
+  listMessages,
+  sendMessage,
+  getHistory,
 };

@@ -77,3 +77,24 @@ Drizzle no depende de un motor binario externo: usa el driver `pg` (node-postgre
 **Qué se implementó:** ambos endpoints genéricos (`/api/tasks/:id/...`) funcionan igual sobre una tarea simple, una tarea compuesta (padre) o una subtarea, porque internamente una subtarea es una fila más de la tabla `tasks` identificada por su propio `id`. Si la tarea afectada es una subtarea, se recalcula el status del padre después de la operación. Si es un padre con subtareas activas, cancelarlo cancela en cascada esas subtareas (una tarea cancelada no puede dejar responsabilidades sueltas activas).
 
 **Motivo:** respeta la lista literal de endpoints de la spec (no inventa rutas nuevas) y resuelve el caso de uso real (reportar o cancelar una subtarea puntual) con el mismo endpoint genérico.
+
+## 9. Mensajes: no generan una entrada en TaskHistory
+
+**Spec dice:** "Sending a message: ... creates task history where appropriate" (sección 11), pero el enum `TaskHistoryAction` (sección 6) no incluye ninguna acción de tipo "mensaje" (CREATED, UPDATED, ASSIGNED, REASSIGNED, STARTED, COMPLETED, CANNOT_COMPLETE, CANCELLED, STATUS_CHANGED).
+
+**Qué se implementó:** enviar un mensaje no crea una fila en `TaskHistory`. La propia tabla `TaskMessage` (con su `createdAt`) ya funciona como el registro cronológico de la conversación; mezclarla con `TaskHistory` duplicaría información sin un `action` que la represente correctamente.
+
+**Motivo:** "where appropriate" se interpreta como "cuando aplica", y aquí no aplica porque no hay una acción de historial que lo represente sin forzar el modelo de datos de la spec.
+
+## 10. Notificaciones: a quién se notifica cada evento
+
+**Spec dice:** section 13 lista los *tipos* de evento que deben notificar (TASK_ASSIGNED, TASK_REASSIGNED, TASK_COMPLETED, TASK_CANNOT_COMPLETE, TASK_MESSAGE, TASK_EXPIRED, TASK_CANCELLED) sin especificar el destinatario de cada uno más allá de "leader receives notification" (mencionado explícitamente solo para cannot-complete, sección 10) y "Notify relevant assignee(s)" (para cancelación, sección 12).
+
+**Qué se implementó:**
+- `TASK_ASSIGNED` / `TASK_REASSIGNED` → al nuevo assignee.
+- `TASK_COMPLETED` / `TASK_CANNOT_COMPLETE` → a todos los LEADER de la familia.
+- `TASK_CANCELLED` → al assignee de la tarea cancelada (y de cada subtarea cancelada en cascada).
+- `TASK_EXPIRED` → al assignee de la tarea vencida.
+- `TASK_MESSAGE` → a todos los "watchers" de la tarea (LEADER(s) + assignee + assignees de subtareas) excepto quien envió el mensaje.
+
+**Motivo:** son extensiones directas de los dos casos que la spec sí especifica explícitamente, aplicando el mismo criterio ("el lider se entera de lo que necesita decidir, el responsable se entera de lo que le toca a él") al resto de los eventos.

@@ -2,6 +2,37 @@ const { eq, and, or, inArray, isNull, isNotNull } = require("drizzle-orm");
 const { db } = require("../db/client");
 const { tasks, taskHistory, familyMembers } = require("../db/schema");
 const AppError = require("../utils/AppError");
+const notificationService = require("./notificationService");
+
+async function getFamilyLeaderIds(familyId) {
+  const leaders = await db
+    .select({ userId: familyMembers.userId })
+    .from(familyMembers)
+    .where(and(eq(familyMembers.familyId, familyId), eq(familyMembers.role, "LEADER")));
+  return leaders.map((l) => l.userId);
+}
+
+// Usuarios con visibilidad sobre una tarea: lider(es) de la familia, el
+// assignee directo, y si es una tarea compuesta, los assignees de sus
+// subtareas. Se usa para notificaciones y para quien puede ver mensajes.
+async function getTaskWatchers(task) {
+  const leaderIds = await getFamilyLeaderIds(task.familyId);
+  const ids = new Set(leaderIds);
+
+  if (task.assignedToId) ids.add(task.assignedToId);
+
+  if (!task.parentTaskId) {
+    const subtasks = await db
+      .select({ assignedToId: tasks.assignedToId })
+      .from(tasks)
+      .where(eq(tasks.parentTaskId, task.id));
+    subtasks.forEach((s) => {
+      if (s.assignedToId) ids.add(s.assignedToId);
+    });
+  }
+
+  return [...ids];
+}
 
 async function assertAssigneeInFamily(familyId, assignedToId) {
   const [membership] = await db
@@ -111,6 +142,15 @@ async function expireOverdueFamilyTasks(familyId) {
       metadata: { reason: "overdue", automatic: true },
     });
 
+    if (task.assignedToId) {
+      await notificationService.create(
+        task.assignedToId,
+        "TASK_EXPIRED",
+        task.id,
+        `La tarea "${task.title}" vencio sin completarse`
+      );
+    }
+
     if (task.parentTaskId) affectedParents.add(task.parentTaskId);
   }
 
@@ -184,6 +224,13 @@ async function createSimpleTask(user, familyId, data) {
     newStatus: "PENDING",
   });
 
+  await notificationService.create(
+    data.assignedToId,
+    "TASK_ASSIGNED",
+    task.id,
+    `Se te asigno la tarea "${task.title}"`
+  );
+
   return { ...task, subtasks: [] };
 }
 
@@ -238,6 +285,13 @@ async function createCompositeTask(user, familyId, data) {
       action: "CREATED",
       newStatus: "PENDING",
     });
+
+    await notificationService.create(
+      sub.assignedToId,
+      "TASK_ASSIGNED",
+      subtaskRow.id,
+      `Se te asigno la subtarea "${subtaskRow.title}"`
+    );
 
     createdSubtasks.push(subtaskRow);
   }
@@ -345,6 +399,13 @@ async function assignTask(user, familyMembership, taskId, assignedToId) {
     metadata: { previousAssignedToId: task.assignedToId, newAssignedToId: assignedToId },
   });
 
+  await notificationService.create(
+    assignedToId,
+    action === "ASSIGNED" ? "TASK_ASSIGNED" : "TASK_REASSIGNED",
+    task.id,
+    `Se te ${action === "ASSIGNED" ? "asigno" : "reasigno"} la tarea "${task.title}"`
+  );
+
   return updated;
 }
 
@@ -395,6 +456,17 @@ async function updateStatus(user, familyMembership, taskId, status) {
     newStatus: status,
   });
 
+  if (status === "COMPLETED") {
+    const leaderIds = await getFamilyLeaderIds(familyMembership.familyId);
+    await notificationService.createMany(
+      leaderIds,
+      "TASK_COMPLETED",
+      task.id,
+      `Se completo la tarea "${task.title}"`,
+      user.id
+    );
+  }
+
   return updated;
 }
 
@@ -431,6 +503,15 @@ async function cannotComplete(user, familyMembership, taskId, reason) {
   if (task.parentTaskId) {
     await recomputeParentStatus(task.parentTaskId, user.id);
   }
+
+  const leaderIds = await getFamilyLeaderIds(familyMembership.familyId);
+  await notificationService.createMany(
+    leaderIds,
+    "TASK_CANNOT_COMPLETE",
+    task.id,
+    `No se pudo completar la tarea "${task.title}": ${reason}`,
+    user.id
+  );
 
   return updated;
 }
@@ -487,6 +568,24 @@ async function cancelTask(user, familyMembership, taskId) {
       newStatus: "CANCELLED",
       metadata: { cascadedFromParent: task.id },
     });
+
+    if (sub.assignedToId) {
+      await notificationService.create(
+        sub.assignedToId,
+        "TASK_CANCELLED",
+        sub.id,
+        `Se cancelo la subtarea "${sub.title}"`
+      );
+    }
+  }
+
+  if (task.assignedToId) {
+    await notificationService.create(
+      task.assignedToId,
+      "TASK_CANCELLED",
+      task.id,
+      `Se cancelo la tarea "${task.title}"`
+    );
   }
 
   if (task.parentTaskId) {
@@ -584,6 +683,13 @@ async function assignSubtask(user, familyMembership, parentId, subtaskId, assign
     metadata: { previousAssignedToId: subtask.assignedToId, newAssignedToId: assignedToId },
   });
 
+  await notificationService.create(
+    assignedToId,
+    action === "ASSIGNED" ? "TASK_ASSIGNED" : "TASK_REASSIGNED",
+    subtask.id,
+    `Se te ${action === "ASSIGNED" ? "asigno" : "reasigno"} la subtarea "${subtask.title}"`
+  );
+
   return updated;
 }
 
@@ -616,6 +722,17 @@ async function updateSubtaskStatus(user, familyMembership, parentId, subtaskId, 
     newStatus: status,
   });
 
+  if (status === "COMPLETED") {
+    const leaderIds = await getFamilyLeaderIds(familyMembership.familyId);
+    await notificationService.createMany(
+      leaderIds,
+      "TASK_COMPLETED",
+      subtask.id,
+      `Se completo la subtarea "${subtask.title}"`,
+      user.id
+    );
+  }
+
   await recomputeParentStatus(Number(parentId), user.id);
 
   return updated;
@@ -635,4 +752,9 @@ module.exports = {
   updateSubtask,
   assignSubtask,
   updateSubtaskStatus,
+  // reutilizados por messageService y historyService para validar
+  // visibilidad y notificar sobre una tarea sin duplicar logica
+  getTaskOrThrow,
+  assertCanView,
+  getTaskWatchers,
 };

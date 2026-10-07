@@ -86,4 +86,4 @@ Ver [`docs/decisiones.md`](./docs/decisiones.md).
 
 ## Estado
 
-🚧 En desarrollo — Phase 6 completa (cannot-complete, cancelación, expiración).
+🚧 En desarrollo — Phase 7 completa (mensajes de tarea, historial, notificaciones).

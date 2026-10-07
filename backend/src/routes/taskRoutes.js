@@ -27,4 +27,9 @@ router.patch(
   asyncHandler(taskController.assignSubtask)
 );
 
+router.get("/:taskId/messages", asyncHandler(taskController.listMessages));
+router.post("/:taskId/messages", asyncHandler(taskController.sendMessage));
+
+router.get("/:taskId/history", asyncHandler(taskController.getHistory));
+
 module.exports = router;
