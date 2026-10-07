@@ -14,6 +14,8 @@ router.get("/:id", asyncHandler(taskController.getTask));
 router.put("/:id", requireLeader, asyncHandler(taskController.updateTask));
 router.patch("/:id/status", asyncHandler(taskController.updateStatus));
 router.patch("/:id/assign", requireLeader, asyncHandler(taskController.assignTask));
+router.patch("/:id/cannot-complete", asyncHandler(taskController.cannotCompleteTask));
+router.delete("/:id", requireLeader, asyncHandler(taskController.cancelTask));
 
 router.post("/:id/subtasks", requireLeader, asyncHandler(taskController.createSubtask));
 router.get("/:id/subtasks", asyncHandler(taskController.listSubtasks));

@@ -12,6 +12,7 @@ const {
   assignSubtaskSchema,
   subtaskStatusTransitionSchema,
 } = require("../validators/subtaskValidators");
+const { cannotCompleteSchema } = require("../validators/cannotCompleteValidators");
 const { sendSuccess } = require("../utils/apiResponse");
 
 async function createTask(req, res) {
@@ -46,6 +47,17 @@ async function assignTask(req, res) {
 async function updateStatus(req, res) {
   const { status } = statusTransitionSchema.parse(req.body);
   const task = await taskService.updateStatus(req.user, req.familyMembership, req.params.id, status);
+  return sendSuccess(res, { data: { task } });
+}
+
+async function cannotCompleteTask(req, res) {
+  const { reason } = cannotCompleteSchema.parse(req.body);
+  const task = await taskService.cannotComplete(req.user, req.familyMembership, req.params.id, reason);
+  return sendSuccess(res, { data: { task } });
+}
+
+async function cancelTask(req, res) {
+  const task = await taskService.cancelTask(req.user, req.familyMembership, req.params.id);
   return sendSuccess(res, { data: { task } });
 }
 
@@ -103,6 +115,8 @@ module.exports = {
   updateTask,
   assignTask,
   updateStatus,
+  cannotCompleteTask,
+  cancelTask,
   createSubtask,
   listSubtasks,
   updateSubtask,

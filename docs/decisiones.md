@@ -61,3 +61,19 @@ Drizzle no depende de un motor binario externo: usa el driver `pg` (node-postgre
 - `PATCH /api/tasks/:id/status` rechaza **cualquier** cambio manual de estado (no solo hacia COMPLETED) cuando la tarea tiene subtareas — el estado del padre solo se recalcula automáticamente al cambiar el estado de una subtarea. Esto es una lectura más estricta que "no se puede marcar COMPLETED manualmente", pero consistente con "Do not store a manually editable parent progress percentage" y evita un estado inconsistente (ej. marcar IN_PROGRESS manualmente un padre cuyas subtareas están todas PENDING).
 
 **Motivo:** son las interpretaciones más simples y seguras compatibles con la spec (sección 26).
+
+## 7. Expiración: barrido perezoso en cada lectura, sin scheduler
+
+**Spec dice:** "Overdue incomplete tasks can become EXPIRED according to backend expiration logic" — sin especificar el mecanismo.
+
+**Qué se implementó:** no hay un cron/scheduler corriendo en background. En cambio, cada vez que se listan o leen tareas de una familia (`GET /api/tasks`, `GET /api/tasks/:id`, `GET /api/tasks/:id/subtasks`), el backend primero revisa si alguna tarea PENDING/IN_PROGRESS de esa familia ya venció (`dueDate` + `dueTime`, o fin del día si no tiene hora) y la pasa a EXPIRED antes de responder, registrando el cambio en `TaskHistory` (acción `STATUS_CHANGED`, atribuida al creador de la tarea ya que no hay un usuario actuando).
+
+**Motivo:** cubre la regla de negocio sin infraestructura adicional (no hay cron en este entorno sandbox ni se pidió explícitamente). Los datos siempre quedan correctos en el momento en que alguien los consulta. Si en el futuro se necesita que la expiración ocurra exactamente en el instante del vencimiento (p. ej. para notificar sin que nadie abra la app), se puede agregar un script `backend/src/db/expireTasks.js` que llame a la misma lógica (`expireOverdueFamilyTasks`) desde un cron externo, sin reescribir nada.
+
+## 8. cannot-complete y cancelación operan sobre cualquier tarea por id (simple, padre o subtarea)
+
+**Spec dice:** `PATCH /api/tasks/:id/cannot-complete` y `DELETE /api/tasks/:id` están listados una sola vez en la sección 8 (API Design), sin una ruta anidada equivalente bajo `/api/tasks/:id/subtasks/:subtaskId` (a diferencia de `status` y `assign`, que sí tienen version anidada para subtareas).
+
+**Qué se implementó:** ambos endpoints genéricos (`/api/tasks/:id/...`) funcionan igual sobre una tarea simple, una tarea compuesta (padre) o una subtarea, porque internamente una subtarea es una fila más de la tabla `tasks` identificada por su propio `id`. Si la tarea afectada es una subtarea, se recalcula el status del padre después de la operación. Si es un padre con subtareas activas, cancelarlo cancela en cascada esas subtareas (una tarea cancelada no puede dejar responsabilidades sueltas activas).
+
+**Motivo:** respeta la lista literal de endpoints de la spec (no inventa rutas nuevas) y resuelve el caso de uso real (reportar o cancelar una subtarea puntual) con el mismo endpoint genérico.

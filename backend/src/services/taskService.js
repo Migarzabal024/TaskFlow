@@ -63,18 +63,81 @@ async function assertCanView(task, user, familyMembership) {
   throw new AppError("No tenés permiso para ver esta tarea", 403);
 }
 
+// Una tarea esta vencida si su dueDate (+ dueTime si lo tiene, si no fin
+// del dia) ya paso. Solo aplica a tareas todavia accionables.
+function isOverdue(task, now) {
+  const deadline = new Date(`${task.dueDate}T${task.dueTime || "23:59:59"}`);
+  return deadline < now;
+}
+
+const EXPIRABLE_STATUSES = ["PENDING", "IN_PROGRESS"];
+
+// Barrido perezoso de expiracion (spec seccion 5: "Overdue incomplete tasks
+// can become EXPIRED according to backend expiration logic"). No hay
+// scheduler en el MVP: se ejecuta en cada lectura de tareas de la familia,
+// lo que garantiza datos correctos sin infraestructura de cron adicional.
+// Documentado en docs/decisiones.md.
+async function expireOverdueFamilyTasks(familyId) {
+  const now = new Date();
+
+  const candidates = await db
+    .select()
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.familyId, familyId),
+        isNull(tasks.deletedAt),
+        inArray(tasks.status, EXPIRABLE_STATUSES)
+      )
+    );
+
+  const overdue = candidates.filter((t) => isOverdue(t, now));
+  if (overdue.length === 0) return;
+
+  const affectedParents = new Set();
+
+  for (const task of overdue) {
+    await db
+      .update(tasks)
+      .set({ status: "EXPIRED", updatedAt: now })
+      .where(eq(tasks.id, task.id));
+
+    await db.insert(taskHistory).values({
+      taskId: task.id,
+      userId: task.createdById,
+      action: "STATUS_CHANGED",
+      previousStatus: task.status,
+      newStatus: "EXPIRED",
+      metadata: { reason: "overdue", automatic: true },
+    });
+
+    if (task.parentTaskId) affectedParents.add(task.parentTaskId);
+  }
+
+  for (const parentId of affectedParents) {
+    await recomputeParentStatus(parentId, overdue.find((t) => t.parentTaskId === parentId).createdById);
+  }
+}
+
 // Recalcula el status del padre a partir de sus subtareas (spec seccion 4).
 // Nunca se guarda manualmente: se deriva cada vez que una subtarea cambia.
+// Las subtareas CANCELLED se excluyen del calculo (como si no existieran).
+// CANNOT_COMPLETE y EXPIRED cuentan como "activas" pero nunca permiten que
+// el padre se de por completado: necesitan intervencion del lider.
 async function recomputeParentStatus(parentId, actingUserId) {
-  const subtasks = await db
+  const allSubtasks = await db
     .select({ status: tasks.status })
     .from(tasks)
     .where(eq(tasks.parentTaskId, parentId));
 
+  const subtasks = allSubtasks.filter((s) => s.status !== "CANCELLED");
+
   if (subtasks.length === 0) return;
 
   const allCompleted = subtasks.every((s) => s.status === "COMPLETED");
-  const anyActive = subtasks.some((s) => s.status === "IN_PROGRESS" || s.status === "COMPLETED");
+  const anyActive = subtasks.some((s) =>
+    ["IN_PROGRESS", "COMPLETED", "CANNOT_COMPLETE", "EXPIRED"].includes(s.status)
+  );
   const newStatus = allCompleted ? "COMPLETED" : anyActive ? "IN_PROGRESS" : "PENDING";
 
   const [parent] = await db.select().from(tasks).where(eq(tasks.id, parentId));
@@ -190,6 +253,8 @@ async function createTask(user, familyId, data) {
 }
 
 async function listTasks(user, familyMembership, filters) {
+  await expireOverdueFamilyTasks(familyMembership.familyId);
+
   const conditions = [
     eq(tasks.familyId, familyMembership.familyId),
     isNull(tasks.deletedAt),
@@ -231,6 +296,8 @@ async function listTasks(user, familyMembership, filters) {
 }
 
 async function getTaskById(user, familyMembership, taskId) {
+  await expireOverdueFamilyTasks(familyMembership.familyId);
+
   const task = await getTaskOrThrow(familyMembership.familyId, taskId);
   await assertCanView(task, user, familyMembership);
 
@@ -331,9 +398,108 @@ async function updateStatus(user, familyMembership, taskId, status) {
   return updated;
 }
 
+// Reporte de imposibilidad de completar (spec seccion 10). Solo el
+// responsable directo de la tarea/subtarea puede reportarlo, nunca el
+// lider en su lugar. La razon nunca se sobreescribe silenciosamente: una
+// vez en CANNOT_COMPLETE, un nuevo intento es rechazado.
+async function cannotComplete(user, familyMembership, taskId, reason) {
+  const task = await getTaskOrThrow(familyMembership.familyId, taskId);
+
+  if (task.assignedToId !== user.id) {
+    throw new AppError("Solo el responsable de la tarea puede reportar que no puede completarla", 403);
+  }
+
+  if (!["PENDING", "IN_PROGRESS"].includes(task.status)) {
+    throw new AppError(`No se puede reportar CANNOT_COMPLETE desde el estado ${task.status}`, 400);
+  }
+
+  const [updated] = await db
+    .update(tasks)
+    .set({ status: "CANNOT_COMPLETE", cannotCompleteReason: reason, updatedAt: new Date() })
+    .where(eq(tasks.id, task.id))
+    .returning();
+
+  await db.insert(taskHistory).values({
+    taskId: task.id,
+    userId: user.id,
+    action: "CANNOT_COMPLETE",
+    previousStatus: task.status,
+    newStatus: "CANNOT_COMPLETE",
+    metadata: { reason },
+  });
+
+  if (task.parentTaskId) {
+    await recomputeParentStatus(task.parentTaskId, user.id);
+  }
+
+  return updated;
+}
+
+// Cancelacion logica (spec seccion 12). Solo el LEADER puede cancelar.
+// Si la tarea tiene subtareas activas, se cancelan en cascada (una tarea
+// cancelada no puede dejar subtareas sueltas accionables). Si la tarea es
+// en si misma una subtarea, se recalcula el status del padre despues.
+async function cancelTask(user, familyMembership, taskId) {
+  const task = await getTaskOrThrow(familyMembership.familyId, taskId);
+
+  if (["COMPLETED", "CANCELLED"].includes(task.status)) {
+    throw new AppError(`No se puede cancelar una tarea en estado ${task.status}`, 400);
+  }
+
+  const now = new Date();
+
+  const [cancelled] = await db
+    .update(tasks)
+    .set({ status: "CANCELLED", cancelledAt: now, cancelledById: user.id, deletedAt: now, updatedAt: now })
+    .where(eq(tasks.id, task.id))
+    .returning();
+
+  await db.insert(taskHistory).values({
+    taskId: task.id,
+    userId: user.id,
+    action: "CANCELLED",
+    previousStatus: task.status,
+    newStatus: "CANCELLED",
+  });
+
+  // Cascada: cancelar subtareas todavia activas de este padre.
+  const activeSubtasks = await db
+    .select()
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.parentTaskId, task.id),
+        inArray(tasks.status, ["PENDING", "IN_PROGRESS", "CANNOT_COMPLETE"])
+      )
+    );
+
+  for (const sub of activeSubtasks) {
+    await db
+      .update(tasks)
+      .set({ status: "CANCELLED", cancelledAt: now, cancelledById: user.id, deletedAt: now, updatedAt: now })
+      .where(eq(tasks.id, sub.id));
+
+    await db.insert(taskHistory).values({
+      taskId: sub.id,
+      userId: user.id,
+      action: "CANCELLED",
+      previousStatus: sub.status,
+      newStatus: "CANCELLED",
+      metadata: { cascadedFromParent: task.id },
+    });
+  }
+
+  if (task.parentTaskId) {
+    await recomputeParentStatus(task.parentTaskId, user.id);
+  }
+
+  return cancelled;
+}
+
 // --- Subtareas ---------------------------------------------------------
 
 async function listSubtasks(familyId, parentId) {
+  await expireOverdueFamilyTasks(familyId);
   await getTaskOrThrow(familyId, parentId);
   return db.select().from(tasks).where(eq(tasks.parentTaskId, Number(parentId)));
 }
@@ -462,6 +628,8 @@ module.exports = {
   updateTask,
   assignTask,
   updateStatus,
+  cannotComplete,
+  cancelTask,
   listSubtasks,
   createSubtask,
   updateSubtask,

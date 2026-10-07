@@ -86,4 +86,4 @@ Ver [`docs/decisiones.md`](./docs/decisiones.md).
 
 ## Estado
 
-🚧 En desarrollo — Phase 5 completa (tareas compuestas / subtareas, status derivado).
+🚧 En desarrollo — Phase 6 completa (cannot-complete, cancelación, expiración).
