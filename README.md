@@ -86,4 +86,4 @@ Ver [`docs/decisiones.md`](./docs/decisiones.md).
 
 ## Estado
 
-🚧 En desarrollo — Phase 3 completa (familia, membresía, invitaciones).
+🚧 En desarrollo — Phase 4 completa (tareas simples, asignación, transiciones de estado).
