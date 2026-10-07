@@ -132,3 +132,17 @@ Drizzle no depende de un motor binario externo: usa el driver `pg` (node-postgre
 - `pages/TaskDetailPage.jsx` resuelve en una sola pantalla todas las acciones de una tarea (o subtarea) según quién la mira: iniciar/completar (asignado o LEADER), reportar que no se puede completar (solo asignado), reasignar y cancelar (solo LEADER) — reutilizando los mismos endpoints genéricos que ya usa el backend para subtareas (ver decisión 8).
 
 **Motivo:** son las interpretaciones más simples y consistentes con el resto del proyecto (mismo patrón de "no inventar superficie fuera de la spec", backend como autoridad final de permisos).
+
+## 14. Frontend: responsive, estados de UI, accesibilidad y PWA (Phase 10)
+
+**Spec dice (secciones 18-20):** mobile-first con navegación inferior en mobile y sidebar en desktop (ya resuelto en Phase 9); toda pantalla relevante debe contemplar los estados normal/loading/empty/error/success/disabled/unauthorized/offline; accesibilidad mínima (HTML semántico, foco visible, labels, contraste, no depender solo del color). No pide explícitamente PWA, pero sí "mobile-first" y evitar pantallas en blanco ante error.
+
+**Qué se implementó:**
+- **Offline:** `components/OfflineBanner.jsx` escucha `online`/`offline` del navegador y muestra un aviso fijo arriba de toda la app. Además, `apiClient` distingue un error de red (sin `error.response`, típicamente por estar offline) y devuelve un mensaje específico en vez del genérico.
+- **Unauthorized/sesión vencida:** un 401 en un pedido que llevaba `Authorization` (token vencido o invalidado, a diferencia de un login con credenciales incorrectas, que también es 401 pero sin ese header) dispara un evento global (`SESSION_EXPIRED_EVENT`) que `AuthContext` escucha para desloguear y mandar a `/login` con un aviso ("tu sesión venció"), en vez de que cada pantalla maneje su propio 401.
+- **PWA:** `vite-plugin-pwa` genera `manifest.webmanifest` + service worker (precachea el shell de la app para carga offline; las llamadas a `/api` nunca se cachean, siempre van a red). Instalable en mobile/desktop. No estaba pedido explícitamente por la spec, pero es una extensión natural de "mobile-first" sin costo para el alcance del MVP.
+- **Responsive adicional:** controles con alto mínimo de 44px (botones, inputs) para cumplir "touch-friendly controls"; a partir de 1024px el dashboard usa dos columnas (`.two-col`) en vez de una sola columna larga, aprovechando el ancho de tablet/desktop.
+- **Accesibilidad:** foco visible por teclado (`:focus-visible`) en todos los controles interactivos; `aria-label` en botones solo-ícono (notificaciones, cerrar sesión) y en selects/inputs de filtros que no tienen un `<label>` visible propio; `lang="es"` en `index.html`; ninguna pantalla depende solo del color para comunicar estado (los badges de status/prioridad siempre llevan texto).
+- **Pantallas en blanco:** se revisaron los `return null` de guarda (cuando `loading` ya terminó pero el dato esperado no llegó) y se reemplazaron por un `ErrorAlert` con mensaje, para que ningún camino de error deje la pantalla vacía.
+
+**Motivo:** cubre los requisitos explícitos de las secciones 18-20 con la implementación más simple disponible (eventos del navegador y de Axios en vez de librerías adicionales de manejo de estado de red), y agrega PWA como mejora de bajo costo coherente con "mobile-first".

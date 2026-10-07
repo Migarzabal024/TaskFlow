@@ -72,14 +72,22 @@ export default function TasksListPage() {
       </div>
 
       <div className="filters-bar">
-        <select value={filters.status} onChange={(e) => updateFilter("status", e.target.value)}>
+        <select
+          aria-label="Filtrar por estado"
+          value={filters.status}
+          onChange={(e) => updateFilter("status", e.target.value)}
+        >
           {STATUS_OPTIONS.map(([value, label]) => (
             <option key={value} value={value}>
               {label}
             </option>
           ))}
         </select>
-        <select value={filters.priority} onChange={(e) => updateFilter("priority", e.target.value)}>
+        <select
+          aria-label="Filtrar por prioridad"
+          value={filters.priority}
+          onChange={(e) => updateFilter("priority", e.target.value)}
+        >
           {PRIORITY_OPTIONS.map(([value, label]) => (
             <option key={value} value={value}>
               {label}
@@ -88,11 +96,13 @@ export default function TasksListPage() {
         </select>
         <input
           type="date"
+          aria-label="Filtrar por fecha de vencimiento"
           value={filters.dueDate}
           onChange={(e) => updateFilter("dueDate", e.target.value)}
         />
         {isLeader && (
           <select
+            aria-label="Filtrar por integrante asignado"
             value={filters.assignedToId}
             onChange={(e) => updateFilter("assignedToId", e.target.value)}
           >

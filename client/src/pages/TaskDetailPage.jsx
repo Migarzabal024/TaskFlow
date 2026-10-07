@@ -146,7 +146,7 @@ export default function TaskDetailPage() {
 
   if (loading) return <Spinner />;
   if (error) return <ErrorAlert message={error} />;
-  if (!task) return null;
+  if (!task) return <ErrorAlert message="No se pudo cargar la tarea." />;
 
   const hasSubtasks = Array.isArray(task.subtasks) && task.subtasks.length > 0;
   const canCancel = isLeader && !["COMPLETED", "CANCELLED"].includes(task.status);
@@ -222,6 +222,7 @@ export default function TaskDetailPage() {
           <div className="stack">
             <textarea
               rows={2}
+              aria-label="Razón por la que no se puede completar la tarea"
               placeholder="¿Por qué no se puede completar?"
               value={cannotCompleteReason}
               onChange={(e) => setCannotCompleteReason(e.target.value)}
@@ -245,7 +246,11 @@ export default function TaskDetailPage() {
         )}
         {reassignFor === row.id && (
           <div className="btn-group">
-            <select defaultValue={row.assignedToId ?? ""} onChange={(e) => submitReassign(row, e.target.value)}>
+            <select
+              aria-label="Reasignar a"
+              defaultValue={row.assignedToId ?? ""}
+              onChange={(e) => submitReassign(row, e.target.value)}
+            >
               <option value="">Elegí un integrante</option>
               {members.map((m) => (
                 <option key={m.userId} value={m.userId}>
@@ -342,6 +347,7 @@ export default function TaskDetailPage() {
           <form className="form" style={{ flexDirection: "row" }} onSubmit={handleSendMessage}>
             <input
               style={{ flex: 1 }}
+              aria-label="Escribir un mensaje"
               placeholder="Escribí un mensaje..."
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}

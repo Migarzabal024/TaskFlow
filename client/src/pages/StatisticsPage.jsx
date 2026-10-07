@@ -27,7 +27,7 @@ export default function StatisticsPage() {
 
   if (loading) return <Spinner />;
   if (error) return <ErrorAlert message={error} />;
-  if (!stats) return null;
+  if (!stats) return <ErrorAlert message="No se pudieron cargar las estadísticas." />;
 
   const max = Math.max(1, ...Object.values(stats.counts));
 

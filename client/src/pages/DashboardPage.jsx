@@ -48,56 +48,60 @@ export default function DashboardPage() {
 
       <ErrorAlert message={error} />
 
-      <section>
-        <h3 className="section-title">
-          {isLeader ? "Tareas de hoy" : "Tus tareas de hoy"} ({todayTasks.length})
-        </h3>
-        {todayTasks.length === 0 ? (
-          <div className="card">
-            <EmptyState>No hay tareas con vencimiento hoy.</EmptyState>
-          </div>
-        ) : (
-          <div className="stack">
-            {todayTasks.map((t) => (
-              <TaskListItem key={t.id} task={t} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {isLeader ? (
-        <section className="grid-stats">
-          <div className="stat-tile">
-            <div className="stat-tile__value">{pending.length}</div>
-            <div className="stat-tile__label">Pendientes</div>
-          </div>
-          <div className="stat-tile">
-            <div className="stat-tile__value">{inProgress.length}</div>
-            <div className="stat-tile__label">En curso</div>
-          </div>
-          <div className="stat-tile">
-            <div className="stat-tile__value">{completed.length}</div>
-            <div className="stat-tile__label">Completadas</div>
-          </div>
+      <div className="two-col">
+        <section>
+          <h3 className="section-title">
+            {isLeader ? "Tareas de hoy" : "Tus tareas de hoy"} ({todayTasks.length})
+          </h3>
+          {todayTasks.length === 0 ? (
+            <div className="card">
+              <EmptyState>No hay tareas con vencimiento hoy.</EmptyState>
+            </div>
+          ) : (
+            <div className="stack">
+              {todayTasks.map((t) => (
+                <TaskListItem key={t.id} task={t} />
+              ))}
+            </div>
+          )}
         </section>
-      ) : null}
 
-      <section>
-        <h3 className="section-title">
-          {isLeader ? "Necesitan tu atención" : "Tareas que requieren acción"} ({needsAttention.length})
-        </h3>
-        {needsAttention.length === 0 ? (
-          <div className="card">
-            <EmptyState>Todo en orden por ahora.</EmptyState>
-          </div>
-        ) : (
-          <div className="stack">
-            {needsAttention.map((t) => (
-              <TaskListItem key={t.id} task={t} />
-            ))}
-          </div>
-        )}
-      </section>
+        <div className="stack">
+          {isLeader ? (
+            <section className="grid-stats">
+              <div className="stat-tile">
+                <div className="stat-tile__value">{pending.length}</div>
+                <div className="stat-tile__label">Pendientes</div>
+              </div>
+              <div className="stat-tile">
+                <div className="stat-tile__value">{inProgress.length}</div>
+                <div className="stat-tile__label">En curso</div>
+              </div>
+              <div className="stat-tile">
+                <div className="stat-tile__value">{completed.length}</div>
+                <div className="stat-tile__label">Completadas</div>
+              </div>
+            </section>
+          ) : null}
+
+          <section>
+            <h3 className="section-title">
+              {isLeader ? "Necesitan tu atención" : "Tareas que requieren acción"} ({needsAttention.length})
+            </h3>
+            {needsAttention.length === 0 ? (
+              <div className="card">
+                <EmptyState>Todo en orden por ahora.</EmptyState>
+              </div>
+            ) : (
+              <div className="stack">
+                {needsAttention.map((t) => (
+                  <TaskListItem key={t.id} task={t} />
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
     </div>
   );
 }

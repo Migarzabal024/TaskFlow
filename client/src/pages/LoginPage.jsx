@@ -7,7 +7,7 @@ import { loginSchema } from "../features/auth/authSchemas";
 import ErrorAlert from "../components/ErrorAlert";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, sessionExpired, clearSessionExpired } = useAuth();
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
   const {
@@ -26,6 +26,10 @@ export default function LoginPage() {
     }
   }
 
+  function handleFieldFocus() {
+    if (sessionExpired) clearSessionExpired();
+  }
+
   return (
     <div className="auth-screen">
       <div className="auth-card">
@@ -34,10 +38,21 @@ export default function LoginPage() {
           <p className="text-muted">Iniciá sesión para seguir con tus tareas.</p>
         </div>
         <form className="form card" onSubmit={handleSubmit(onSubmit)} noValidate>
+          {sessionExpired && !serverError && (
+            <div className="alert alert-info" role="status">
+              Tu sesión venció. Iniciá sesión de nuevo para continuar.
+            </div>
+          )}
           <ErrorAlert message={serverError} />
           <div className="form-group">
             <label htmlFor="email">Email</label>
-            <input id="email" type="email" autoComplete="email" {...register("email")} />
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              onFocus={handleFieldFocus}
+              {...register("email")}
+            />
             {errors.email && <span className="field-error">{errors.email.message}</span>}
           </div>
           <div className="form-group">

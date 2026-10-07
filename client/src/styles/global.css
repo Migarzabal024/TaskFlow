@@ -39,6 +39,19 @@ a {
   text-decoration: none;
 }
 
+/* Foco visible para navegacion por teclado (spec seccion 20). Solo se
+   muestra cuando el foco viene del teclado (:focus-visible), no al hacer
+   click/tap, para no ensuciar la UI en mobile. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 h1, h2, h3, h4 {
   margin: 0 0 0.4em;
   line-height: 1.25;
@@ -191,6 +204,21 @@ button, input, select, textarea {
   }
 }
 
+/* Desktop ancho: dashboards multi-columna (spec seccion 18) para las
+   pantallas que lo pidan explicitamente con .two-col. */
+@media (min-width: 1024px) {
+  .app-main {
+    max-width: 1040px;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    align-items: start;
+    gap: 20px;
+  }
+}
+
 /* --- building blocks --- */
 
 .page-header {
@@ -273,8 +301,13 @@ input, select, textarea {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
+  min-height: 44px;
   background: var(--color-surface);
   color: var(--color-text);
+}
+
+textarea {
+  min-height: 70px;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -292,6 +325,7 @@ input:focus, select:focus, textarea:focus {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  min-height: 44px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   padding: 10px 16px;
@@ -330,6 +364,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .btn-sm {
+  min-height: 38px;
   padding: 6px 10px;
   font-size: 0.85rem;
 }

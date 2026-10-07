@@ -89,4 +89,4 @@ Ver [`docs/decisiones.md`](./docs/decisiones.md).
 
 ## Estado
 
-🚧 En desarrollo — Phase 9 completa (shell de React: auth, onboarding, dashboards, tareas, familia, notificaciones, estadísticas, perfil). Backend y frontend funcionales de punta a punta.
+🚧 En desarrollo — Phase 10 completa (responsive avanzado, PWA instalable, estados de UI offline/unauthorized, accesibilidad). App funcional de punta a punta en mobile y desktop.
