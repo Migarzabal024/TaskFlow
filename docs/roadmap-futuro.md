@@ -4,6 +4,14 @@ Estado al 2026-10-06: MVP cerrado (Phases 0-11), tema oscuro azul/violeta aplica
 
 Estas son propuestas para una próxima etapa, **nada implementado todavía** — se evalúan y priorizan cuando se retome el desarrollo. No forman parte del alcance del MVP ni de [`docs/spec.md`](./spec.md).
 
+## Diseño visual (Figma Make)
+
+La exploración visual (rediseño de pantallas, variantes de estilo, etc.) se está trabajando en paralelo en Figma Make:
+
+🔗 [Family Task — Figma Make](https://www.figma.com/make/xpqiiZ3DoHJEYVMAklo5wa/Family-Task?p=f&t=EGAlKA2u0It0tUib-0)
+
+Pendiente: revisar ese diseño y ver qué cambios visuales conviene traer al código (`client/src/styles/global.css` y componentes) en la próxima etapa.
+
 ## Funcionalidad
 
 - **Tareas recurrentes**: que una tarea se pueda marcar como diaria/semanal/mensual y se regenere sola en vez de crearla a mano cada vez.
