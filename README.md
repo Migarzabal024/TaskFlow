@@ -10,8 +10,8 @@ La especificación completa (reglas de negocio, modelo de datos, API, fases de d
 
 **Backend**
 - Node.js + Express
-- PostgreSQL + Prisma
-- JWT + bcrypt
+- PostgreSQL + Drizzle ORM (ver nota de desviación abajo)
+- JWT + bcryptjs
 
 **Frontend**
 - React + Vite (JavaScript, sin TypeScript)
@@ -37,7 +37,7 @@ routes/        # definición de rutas /api
 services/      # lógica de negocio
 validators/    # validación de entrada
 utils/         # utilidades
-prisma/        # schema y migraciones
+db/            # schema de Drizzle, cliente, migraciones y seed
 app.js         # configuración de Express (sin listen)
 server.js      # punto de entrada, levanta el servidor
 ```
@@ -67,6 +67,9 @@ styles/
 cd backend
 cp .env.example .env   # completar DATABASE_URL y JWT_SECRET
 npm install
+npm run db:generate   # genera migraciones SQL a partir de src/db/schema.js
+npm run db:migrate    # aplica las migraciones a la base
+npm run db:seed       # carga datos de desarrollo (ver docs/decisiones.md)
 npm run dev
 ```
 
@@ -77,6 +80,10 @@ npm install
 npm run dev
 ```
 
+## Desviaciones registradas respecto a la especificación
+
+Ver [`docs/decisiones.md`](./docs/decisiones.md).
+
 ## Estado
 
-🚧 En desarrollo — fase inicial de estructura del proyecto (Phase 0 de la especificación).
+🚧 En desarrollo — Phase 1 completa (PostgreSQL + ORM + schema + migraciones + seed).
