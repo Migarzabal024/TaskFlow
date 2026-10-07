@@ -4,6 +4,7 @@ const familyRoutes = require("./routes/familyRoutes");
 const invitationRoutes = require("./routes/invitationRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const statisticsRoutes = require("./routes/statisticsRoutes");
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 
 const app = express();
@@ -23,6 +24,7 @@ app.use("/api/families", familyRoutes);
 app.use("/api/invitations", invitationRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/statistics", statisticsRoutes);
 
 app.use("/api", notFoundHandler);
 app.use(errorHandler);

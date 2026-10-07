@@ -757,4 +757,6 @@ module.exports = {
   getTaskOrThrow,
   assertCanView,
   getTaskWatchers,
+  // reutilizado por statisticsService para barrer tareas vencidas antes de contar
+  expireOverdueFamilyTasks,
 };

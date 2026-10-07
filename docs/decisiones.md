@@ -98,3 +98,15 @@ Drizzle no depende de un motor binario externo: usa el driver `pg` (node-postgre
 - `TASK_MESSAGE` → a todos los "watchers" de la tarea (LEADER(s) + assignee + assignees de subtareas) excepto quien envió el mensaje.
 
 **Motivo:** son extensiones directas de los dos casos que la spec sí especifica explícitamente, aplicando el mismo criterio ("el lider se entera de lo que necesita decidir, el responsable se entera de lo que le toca a él") al resto de los eventos.
+
+## 11. Estadísticas: alcance por rol y conteo de tareas canceladas
+
+**Spec dice (sección 14):** contar al menos completed/pending/in progress/cannot complete/cancelled/expired, calculado desde los datos de tareas, "respetando límites de familia y la semántica de soft-delete/cancelación". No dice si la vista es igual para LEADER y MEMBER.
+
+**Qué se implementó:**
+- `GET /api/statistics` cuenta, por estado, **todas las filas de la tabla `tasks`** (tareas simples, padres compuestos y subtareas) de la familia del usuario — cada fila aporta su propio estado al conteo total, sin intentar deduplicar por tarea "lógica".
+- El alcance de visibilidad es el mismo que `GET /api/tasks`: un LEADER ve el conteo de **toda la familia**; un MEMBER ve el conteo de **solo las filas asignadas a él** (tarea simple o subtarea).
+- A diferencia de `listTasks`/`getTaskById`, el conteo **no excluye las filas con `deletedAt` seteado**. En este esquema, cancelar una tarea marca a la vez `status = CANCELLED` y `deletedAt` (es el mismo evento, ver patrón de soft-delete en la introducción de este documento) para sacarla de los listados activos. Si las estadísticas excluyeran `deletedAt`, la categoría `CANCELLED` quedaría siempre en 0, lo cual contradice que la spec la pide explícitamente como categoría de conteo. "Respetar la semántica de cancelación" se interpretó entonces como "contar lo cancelado como cancelado", no como "ocultarlo también de las estadísticas".
+- Antes de contar se corre el mismo barrido de expiración perezosa (`expireOverdueFamilyTasks`) que usan `listTasks`/`getTaskById`, para que una tarea vencida no leída todavía aparezca como EXPIRED y no como PENDING/IN_PROGRESS.
+
+**Motivo:** son las interpretaciones más simples y consistentes con el resto de la implementación (mismo criterio de visibilidad por rol ya usado en toda la sección de tareas) y con el requisito explícito de la spec de poder ver un conteo de "cancelled" (sección 26: "basic status counts are correct"), que de otro modo sería imposible de cumplir dado cómo está modelada la cancelación.

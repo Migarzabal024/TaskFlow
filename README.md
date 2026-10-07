@@ -86,4 +86,4 @@ Ver [`docs/decisiones.md`](./docs/decisiones.md).
 
 ## Estado
 
-🚧 En desarrollo — Phase 7 completa (mensajes de tarea, historial, notificaciones).
+🚧 En desarrollo — Phase 8 completa (estadísticas). Backend funcional de punta a punta.
