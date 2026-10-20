@@ -1,24 +1,26 @@
 :root {
-  /* Tema claro, cálido y minimalista con toques neobrutalistas moderados */
-  --color-bg: #fdf6ec;
+  /* Modo "brillante": paleta cálida y saturada (atardecer: teal, violeta,
+     rojo, naranja, amarillo), minimalista con toques neobrutalistas. */
+  --color-bg: #fff8ec;
   --color-surface: #ffffff;
-  --color-surface-alt: #fff1de;
-  --color-border: #2b2420;
-  --color-text: #2b2420;
-  --color-text-muted: #8a7a6b;
-  --color-primary: #ff6b4a;
+  --color-surface-alt: #ffefcf;
+  --color-border: #211527;
+  --color-text: #211527;
+  --color-text-muted: #8a7792;
+  --color-primary: #f86624;
   --color-primary-dark: #e2502f;
-  --color-accent: #ffc145;
-  --color-accent-dark: #e6a020;
-  --gradient-primary: linear-gradient(135deg, #ff6b4a 0%, #ffc145 100%);
-  --color-danger: #e6594a;
-  --color-success: #3f9d6f;
-  --color-warning: #e6a020;
-  --color-info: #2f9d94;
-  /* Texto oscuro fijo para usar sobre fondos cálidos brillantes (botones,
-     chip activo, banners) en los dos temas, donde el texto del tema
-     (claro u oscuro) no daría suficiente contraste. */
-  --color-ink: #2b2014;
+  --color-accent: #f9c80e;
+  --color-accent-dark: #e0a106;
+  --color-violet: #662e9b;
+  --gradient-primary: linear-gradient(135deg, #f86624 0%, #f9c80e 100%);
+  --color-danger: #ea3546;
+  --color-success: #2ea86c;
+  --color-warning: #e0a106;
+  --color-info: #43bccd;
+  /* Texto fijo para usar sobre fondos brillantes (botones, chip activo,
+     banners) en los dos temas, donde el texto del tema no daría
+     suficiente contraste. */
+  --color-ink: #211527;
   --radius: 14px;
   --radius-sm: 10px;
   /* Sombra "dura", sin blur: el toque neobrutalista moderado del tema. */
@@ -28,22 +30,24 @@
 }
 
 :root[data-theme="dark"] {
-  /* Misma paleta cálida, en versión oscura. */
-  --color-bg: #201712;
-  --color-surface: #2b2019;
-  --color-surface-alt: #372921;
-  --color-border: #f5ead9;
-  --color-text: #f5ead9;
-  --color-text-muted: #c6ae98;
-  --color-primary: #ff7a52;
-  --color-primary-dark: #ff6b4a;
-  --color-accent: #ffd166;
-  --color-accent-dark: #ffc145;
-  --gradient-primary: linear-gradient(135deg, #ff7a52 0%, #ffd166 100%);
-  --color-danger: #ff6f61;
-  --color-success: #5ec792;
-  --color-warning: #ffc145;
-  --color-info: #4cc7bd;
+  /* Modo "poco saturado": paleta fría y apagada (navy, violeta, malva,
+     coral, azul acero), misma estructura y estilo que el modo brillante. */
+  --color-bg: #1c2038;
+  --color-surface: #2e365a;
+  --color-surface-alt: #3f5b8d;
+  --color-border: #ede7f3;
+  --color-text: #ede7f3;
+  --color-text-muted: #a2869c;
+  --color-primary: #bd6c73;
+  --color-primary-dark: #9e4e57;
+  --color-accent: #92a1c2;
+  --color-accent-dark: #6b597f;
+  --color-violet: #6b597f;
+  --gradient-primary: linear-gradient(135deg, #bd6c73 0%, #92a1c2 100%);
+  --color-danger: #d97a72;
+  --color-success: #6fa98c;
+  --color-warning: #c9a06b;
+  --color-info: #3f5b8d;
 }
 
 * {
@@ -488,26 +492,18 @@ input:focus, select:focus, textarea:focus {
   border: 1.5px solid currentColor;
 }
 
-.badge-PENDING { background: #f1ece3; color: #8a7a6b; }
-.badge-IN_PROGRESS { background: #e4f5f3; color: var(--color-info); }
-.badge-COMPLETED { background: #e4f3ea; color: var(--color-success); }
-.badge-CANNOT_COMPLETE { background: #fdf0da; color: var(--color-warning); }
-.badge-CANCELLED { background: #fbe6e2; color: var(--color-danger); }
-.badge-EXPIRED { background: #fdebd6; color: #c9791f; }
-
-.badge-LOW { background: #f1ece3; color: #8a7a6b; }
-.badge-MEDIUM { background: #fdf0da; color: var(--color-warning); }
-.badge-HIGH { background: #fbe6e2; color: var(--color-danger); }
-
-:root[data-theme="dark"] .badge-PENDING,
-:root[data-theme="dark"] .badge-LOW { background: rgba(245, 234, 217, 0.1); color: #d9c9b4; }
-:root[data-theme="dark"] .badge-IN_PROGRESS { background: rgba(76, 199, 189, 0.18); color: var(--color-info); }
-:root[data-theme="dark"] .badge-COMPLETED { background: rgba(94, 199, 146, 0.18); color: var(--color-success); }
-:root[data-theme="dark"] .badge-CANNOT_COMPLETE,
-:root[data-theme="dark"] .badge-MEDIUM { background: rgba(255, 193, 69, 0.18); color: var(--color-warning); }
-:root[data-theme="dark"] .badge-CANCELLED,
-:root[data-theme="dark"] .badge-HIGH { background: rgba(255, 111, 97, 0.18); color: var(--color-danger); }
-:root[data-theme="dark"] .badge-EXPIRED { background: rgba(255, 209, 102, 0.2); color: var(--color-accent); }
+/* El fondo de cada badge se mezcla con transparencia (color-mix), así se
+   adapta solo a la superficie de cada tema sin tener que duplicar reglas
+   para modo claro/oscuro. */
+.badge-PENDING,
+.badge-LOW { background: color-mix(in srgb, var(--color-text-muted) 18%, transparent); color: var(--color-text-muted); }
+.badge-IN_PROGRESS { background: color-mix(in srgb, var(--color-info) 20%, transparent); color: var(--color-info); }
+.badge-COMPLETED { background: color-mix(in srgb, var(--color-success) 20%, transparent); color: var(--color-success); }
+.badge-CANNOT_COMPLETE,
+.badge-MEDIUM { background: color-mix(in srgb, var(--color-warning) 20%, transparent); color: var(--color-warning); }
+.badge-CANCELLED,
+.badge-HIGH { background: color-mix(in srgb, var(--color-danger) 18%, transparent); color: var(--color-danger); }
+.badge-EXPIRED { background: color-mix(in srgb, var(--color-violet) 20%, transparent); color: var(--color-violet); }
 
 .alert {
   border-radius: var(--radius-sm);
@@ -518,17 +514,14 @@ input:focus, select:focus, textarea:focus {
 }
 
 .alert-error {
-  background: #fbe6e2;
-  color: #b8392b;
+  background: color-mix(in srgb, var(--color-danger) 16%, transparent);
+  color: var(--color-danger);
 }
 
 .alert-info {
-  background: #e4f5f3;
-  color: #237871;
+  background: color-mix(in srgb, var(--color-info) 18%, transparent);
+  color: var(--color-info);
 }
-
-:root[data-theme="dark"] .alert-error { background: rgba(255, 111, 97, 0.14); color: #ffb3a8; }
-:root[data-theme="dark"] .alert-info { background: rgba(76, 199, 189, 0.16); color: #9fe4de; }
 
 .empty-state {
   text-align: center;
@@ -620,12 +613,8 @@ input:focus, select:focus, textarea:focus {
 }
 
 .message-bubble.own {
-  background: #ffe3cf;
+  background: color-mix(in srgb, var(--color-primary) 30%, transparent);
   align-self: flex-end;
-}
-
-:root[data-theme="dark"] .message-bubble.own {
-  background: rgba(255, 122, 82, 0.28);
 }
 
 .message-row {
