@@ -28,7 +28,7 @@ export default function OfflineBanner() {
         top: 0,
         zIndex: 20,
         background: "var(--color-warning)",
-        color: "var(--color-border)",
+        color: "var(--color-ink)",
         borderBottom: "2px solid var(--color-border)",
         textAlign: "center",
         padding: "6px 12px",

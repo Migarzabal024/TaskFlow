@@ -12,6 +12,24 @@
       content="FamilyTask: organizá, asigná y seguí las tareas del hogar con toda tu familia."
     />
     <title>FamilyTask</title>
+    <script>
+      // Aplica el tema guardado (o la preferencia del sistema) antes del primer
+      // render para evitar el "flash" del tema contrario al cargar la página.
+      (function () {
+        try {
+          var stored = window.localStorage.getItem("familytask_theme");
+          var theme =
+            stored === "light" || stored === "dark"
+              ? stored
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {
+          // si falla, se queda con el tema claro por defecto
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

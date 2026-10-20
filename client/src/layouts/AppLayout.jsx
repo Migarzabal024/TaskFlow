@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import * as notificationService from "../services/notificationService";
+import ThemeToggle from "../components/ThemeToggle";
 
 const NAV_ITEMS = [
   { to: "/app/dashboard", label: "Inicio", icon: "🏠" },
@@ -53,12 +54,14 @@ export default function AppLayout() {
             {item.to === "/app/notifications" && unreadCount > 0 ? ` (${unreadCount})` : ""}
           </NavLink>
         ))}
+        <ThemeToggle variant="sidebar" />
       </nav>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <header className="top-bar">
           <span className="top-bar__title">{family?.name ?? "FamilyTask"}</span>
           <div className="top-bar__actions">
+            <ThemeToggle />
             <button
               type="button"
               className="icon-btn"
