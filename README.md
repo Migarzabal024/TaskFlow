@@ -273,6 +273,7 @@ styles/         # global.css (tokens de diseño y estilos compartidos)
 - [`docs/decisiones.md`](./docs/decisiones.md) — las 14 desviaciones/decisiones de diseño respecto a la spec, con su justificación.
 - [`docs/acceptance-checklist.md`](./docs/acceptance-checklist.md) — checklist de aceptación del MVP, verificado punto por punto.
 - [`docs/roadmap-futuro.md`](./docs/roadmap-futuro.md) — ideas propuestas para futuras mejoras (fuera del alcance del MVP, pendientes de priorizar).
+- [`docs/deploy.md`](./docs/deploy.md) — cómo desplegar la app a producción (Render + Vercel) para usarla desde internet, no solo en localhost.
 
 ## Estado
 
