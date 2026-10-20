@@ -55,7 +55,7 @@ export default function FamilyMembersPage() {
               <p className="text-sm text-muted">{m.email}</p>
             </div>
             <div style={{ textAlign: "right" }}>
-              <span className="badge" style={{ background: "#eef0f4" }}>
+              <span className="badge" style={{ background: "var(--color-surface-alt)" }}>
                 {m.role === "LEADER" ? "Líder" : "Integrante"}
               </span>
               {isLeader && m.role !== "LEADER" && (

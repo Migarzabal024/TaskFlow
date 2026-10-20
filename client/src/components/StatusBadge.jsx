@@ -7,6 +7,20 @@ const LABELS = {
   EXPIRED: "Vencida",
 };
 
+const ICONS = {
+  PENDING: "⏳",
+  IN_PROGRESS: "🚀",
+  COMPLETED: "🏆",
+  CANNOT_COMPLETE: "⚠️",
+  CANCELLED: "✖️",
+  EXPIRED: "⌛",
+};
+
 export default function StatusBadge({ status }) {
-  return <span className={`badge badge-${status}`}>{LABELS[status] ?? status}</span>;
+  return (
+    <span className={`badge badge-${status}`}>
+      <span aria-hidden="true">{ICONS[status] ?? ""}</span>
+      {LABELS[status] ?? status}
+    </span>
+  );
 }

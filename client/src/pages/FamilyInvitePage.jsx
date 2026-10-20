@@ -83,7 +83,7 @@ export default function FamilyInvitePage() {
                 <strong>{inv.email}</strong>
                 <p className="text-sm text-muted">Vence {formatDateTimeFull(inv.expiresAt)}</p>
               </div>
-              <span className="badge" style={{ background: "#eef0f4" }}>
+              <span className="badge" style={{ background: "var(--color-surface-alt)" }}>
                 {STATUS_LABELS[inv.status] ?? inv.status}
               </span>
             </div>

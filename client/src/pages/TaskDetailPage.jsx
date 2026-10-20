@@ -310,6 +310,12 @@ export default function TaskDetailPage() {
           <h3 className="section-title">
             Subtareas ({completedSubtasks}/{task.subtasks.length} completadas)
           </h3>
+          <div className="progress-bar" role="progressbar" aria-valuenow={completedSubtasks} aria-valuemin={0} aria-valuemax={task.subtasks.length}>
+            <div
+              className="progress-bar__fill"
+              style={{ width: `${(completedSubtasks / task.subtasks.length) * 100}%` }}
+            />
+          </div>
           {task.subtasks.map((sub) => (
             <div className="card stack" key={sub.id}>
               <div className="task-row">
