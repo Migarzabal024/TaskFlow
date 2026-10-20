@@ -7,10 +7,16 @@ Flujo core: **PLAN → ASSIGN → EXECUTE → COMMUNICATE → SUPERVISE**
 La especificación completa (reglas de negocio, modelo de datos, API, fases de desarrollo, criterios de aceptación) vive en [`docs/spec.md`](./docs/spec.md) y es la fuente de verdad del alcance del MVP.
 
 <p>
-  <img src="docs/screenshots/dashboard.png" width="260" alt="Dashboard mobile" />
-  <img src="docs/screenshots/task-detail.png" width="260" alt="Detalle de tarea" />
-  <img src="docs/screenshots/dashboard-desktop.png" width="420" alt="Dashboard desktop" />
+  <img src="docs/screenshots/dashboard-light.png" width="200" alt="Dashboard, modo brillante" />
+  <img src="docs/screenshots/task-detail-light.png" width="200" alt="Detalle de tarea, modo brillante" />
+  <img src="docs/screenshots/task-detail-dark.png" width="200" alt="Detalle de tarea, modo poco saturado" />
 </p>
+<p>
+  <img src="docs/screenshots/dashboard-desktop-light.png" width="420" alt="Dashboard desktop, modo brillante" />
+  <img src="docs/screenshots/dashboard-desktop-dark.png" width="420" alt="Dashboard desktop, modo poco saturado" />
+</p>
+
+La app tiene dos paletas elegibles con un botón ☀️/🌙 (respeta la preferencia del sistema y recuerda tu elección): un modo **brillante** (cálido, saturado) y uno **poco saturado** (frío, apagado) — ver [Temas visuales](#temas-visuales).
 
 ---
 
@@ -21,12 +27,13 @@ La especificación completa (reglas de negocio, modelo de datos, API, fases de d
 3. [Puesta en marcha paso a paso](#puesta-en-marcha-paso-a-paso)
 4. [Variables de entorno](#variables-de-entorno)
 5. [Usuarios demo (seed)](#usuarios-demo-seed)
-6. [Scripts disponibles](#scripts-disponibles)
-7. [Tests](#tests)
-8. [Build de producción](#build-de-producción)
-9. [Estructura del repositorio](#estructura-del-repositorio)
-10. [Problemas comunes](#problemas-comunes)
-11. [Documentación adicional](#documentación-adicional)
+6. [Temas visuales](#temas-visuales)
+7. [Scripts disponibles](#scripts-disponibles)
+8. [Tests](#tests)
+9. [Build de producción](#build-de-producción)
+10. [Estructura del repositorio](#estructura-del-repositorio)
+11. [Problemas comunes](#problemas-comunes)
+12. [Documentación adicional](#documentación-adicional)
 
 ---
 
@@ -150,6 +157,15 @@ Después de `npm run db:seed`, todos los usuarios de ejemplo usan la contraseña
 | `juan.member@familytask.dev` | Integrante | sus tareas asignadas, una subtarea completada |
 | `sofia.member@familytask.dev` | Integrante | sus tareas asignadas, una subtarea en curso |
 
+## Temas visuales
+
+El frontend tiene un estilo cálido, clean/minimalista con toques neobrutalistas moderados (bordes de 2px, sombras duras sin blur) y elementos gamificados (badges con íconos, barra de progreso en tareas con subtareas). Vienen dos paletas, elegibles con el botón ☀️/🌙 de la barra superior (mobile) o al pie del sidebar (desktop):
+
+- **Brillante**: cálida y saturada — naranja, amarillo, teal, violeta, rojo.
+- **Poco saturado**: fría y apagada — navy, malva, coral, azul acero.
+
+La elección se guarda en el navegador (`localStorage`) y, si no elegiste ninguna todavía, se usa la preferencia de tema del sistema operativo. Los dos temas están definidos como variables CSS en [`client/src/styles/global.css`](./client/src/styles/global.css) (`:root` y `:root[data-theme="dark"]`); cambiar colores de marca es tocar esas variables, no cada componente.
+
 ## Scripts disponibles
 
 ### `backend/`
@@ -260,4 +276,4 @@ styles/         # global.css (tokens de diseño y estilos compartidos)
 
 ## Estado
 
-✅ MVP completo (Phases 0-11). Backend (auth, familias, invitaciones, tareas simples/compuestas, mensajes, historial, notificaciones, estadísticas) y frontend (React mobile-first, PWA instalable, tema oscuro azul/violeta) funcionales de punta a punta, con tests automatizados y seed de datos de demo.
+✅ MVP completo (Phases 0-11). Backend (auth, familias, invitaciones, tareas simples/compuestas, mensajes, historial, notificaciones, estadísticas) y frontend (React mobile-first, PWA instalable, tema claro/oscuro con dos paletas elegibles) funcionales de punta a punta, con tests automatizados y seed de datos de demo.
